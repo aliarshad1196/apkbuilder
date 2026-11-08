@@ -12,7 +12,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     env:
       ANDROID_HOME: /usr/local/lib/android/sdk
       ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
@@ -26,12 +26,16 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Install Android SDK packages
+      - name: Inspect preinstalled Android SDK
         run: |
-          SDKMANAGER="$ANDROID_HOME/cmdline-tools/16.0/bin/sdkmanager"
-          test -x "$SDKMANAGER"
-          yes | "$SDKMANAGER" --licenses || true
-          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
+          echo "SDK root:"
+          ls -la "$ANDROID_HOME"
+          echo "Installed platforms:"
+          ls -la "$ANDROID_HOME/platforms" || true
+          echo "Installed build tools:"
+          ls -la "$ANDROID_HOME/build-tools" || true
+          echo "Available command-line tools:"
+          find "$ANDROID_HOME/cmdline-tools" -maxdepth 3 -type f -name sdkmanager -print 2>/dev/null || true
 
       - name: Set up Gradle 8.7
         uses: gradle/actions/setup-gradle@v4
