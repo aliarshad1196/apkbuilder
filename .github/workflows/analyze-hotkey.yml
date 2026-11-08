@@ -17,18 +17,18 @@ jobs:
           curl -fL --retry 6 --retry-all-errors --retry-delay 8 --retry-max-time 240 https://github.com/skylot/jadx/releases/download/v1.5.1/jadx-1.5.1.zip -o /tmp/jadx.zip
           unzip -q /tmp/jadx.zip -d /tmp/jadx
           chmod +x /tmp/jadx/bin/jadx
-      - name: Decompile and inspect launch path
+      - name: Decompile and inspect binding API
         run: |
           /tmp/jadx/bin/jadx -d /tmp/hotkey folder./tvsettinghotkey.apk
-          echo '===== COMMONSKIN METHODS ====='
-          sed -n '85,145p' /tmp/hotkey/sources/com/mstar/tv/service/skin/CommonSkin.java
-          echo '===== INPUT ACTIVITY SOURCE SELECTION ====='
-          sed -n '180,270p' /tmp/hotkey/sources/com/mstar/tvsetting/hotkey/InputSourceListViewActivity.java
-          sed -n '420,590p' /tmp/hotkey/sources/com/mstar/tvsetting/hotkey/InputSourceListViewActivity.java
-          echo '===== INPUT ACTIVITY LIFECYCLE AND INTENTS ====='
-          grep -nE 'onCreate|onResume|onStart|onNewIntent|getIntent|get.*Extra|putExtra|switchSource|inputSource =' /tmp/hotkey/sources/com/mstar/tvsetting/hotkey/InputSourceListViewActivity.java | head -n 160
-          echo '===== ENUM AND AIDL ====='
+          echo '===== COMMONSKIN CLASS START ====='
+          sed -n '1,100p' /tmp/hotkey/sources/com/mstar/tv/service/skin/CommonSkin.java
+          echo '===== TV SERVICE SERVER INTERFACE ====='
+          sed -n '1,220p' /tmp/hotkey/sources/com/mstar/tv/service/interfaces/ITvServiceServer.java
+          echo '===== COMMON SERVICE INTERFACE HEADER ====='
+          sed -n '1,100p' /tmp/hotkey/sources/com/mstar/tv/service/interfaces/ITvServiceServerCommon.java
+          echo '===== ENUM FULL ====='
           cat /tmp/hotkey/sources/com/mstar/tv/service/aidl/EN_INPUT_SOURCE_TYPE.java
-          grep -n -A15 -B5 'SetInputSource' /tmp/hotkey/sources/com/mstar/tv/service/interfaces/ITvServiceServerCommon.java | head -n 70
-          echo '===== MANIFEST ====='
-          sed -n '1,240p' /tmp/hotkey/resources/AndroidManifest.xml
+          echo '===== HOTKEY BASE ACTIVITY BINDING ====='
+          grep -R -nE 'new CommonSkin|\.connect\(|CommonSkin\(' /tmp/hotkey/sources/com/mstar/tvsetting/hotkey | head -n 100
+          echo '===== SERVICE BINDING REFERENCES ====='
+          grep -R -nE 'tv_services|ServiceManager|getService|ITvServiceServer\.Stub|asInterface|bindService' /tmp/hotkey/sources/com/mstar/tv/service | head -n 140
