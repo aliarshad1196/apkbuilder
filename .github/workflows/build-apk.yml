@@ -43,15 +43,17 @@ jobs:
           gradle-version: '8.7'
 
       - name: Build APK
-        run: gradle --no-daemon clean assembleDebug
+        run: gradle --no-daemon clean :app:assembleDebug :hdmihelper:assembleDebug
 
       - name: Verify APK exists
         run: test -s app/build/outputs/apk/debug/app-debug.apk
 
-      - name: Upload installable APK
+      - name: Upload installable APKs
         uses: actions/upload-artifact@v4
         with:
-          name: TV-Home-Lite-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: TV-Home-Lite-and-HDMI1-Startup
+          path: |
+            app/build/outputs/apk/debug/app-debug.apk
+            hdmihelper/build/outputs/apk/debug/hdmihelper-debug.apk
           if-no-files-found: error
           retention-days: 14
