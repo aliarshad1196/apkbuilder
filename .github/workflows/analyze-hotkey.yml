@@ -1,0 +1,28 @@
+name: Inspect MStar input switching
+on:
+  push:
+    paths:
+      - 'folder./tvsettinghotkey.apk'
+      - 'folder./MstTvProvider.apk'
+      - '.github/workflows/analyze-hotkey.yml'
+  workflow_dispatch:
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install JADX
+        run: |
+          curl -L --fail https://github.com/skylot/jadx/releases/download/v1.5.1/jadx-1.5.1.zip -o /tmp/jadx.zip
+          unzip -q /tmp/jadx.zip -d /tmp/jadx
+          chmod +x /tmp/jadx/bin/jadx
+      - name: Decompile MStar input components
+        run: |
+          /tmp/jadx/bin/jadx --no-res -d /tmp/hotkey folder./tvsettinghotkey.apk
+          /tmp/jadx/bin/jadx --no-res -d /tmp/provider folder./MstTvProvider.apk
+          echo '===== HOTKEY INPUT METHODS ====='
+          grep -RinE 'InputSourceListViewActivity|SetInputSource|setInputSource|SwitchInputSource|SetCurrentInputSource|E_INPUT_SOURCE_HDMI|EnumInputSource|GetCurrentInputSource|TvManager|ITvServiceServer|set.*source|source.*set' /tmp/hotkey/sources | head -n 400 || true
+          echo '===== PROVIDER INPUT METHODS ====='
+          grep -RinE 'InputSource|HDMI|TvManager|ITvServiceServer|set.*source|source.*set' /tmp/provider/sources | head -n 250 || true
+          echo '===== HOTKEY MANIFEST COMPONENTS ====='
+          grep -nE 'activity|service|receiver|permission' /tmp/hotkey/resources/AndroidManifest.xml | head -n 200 || true
