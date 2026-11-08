@@ -17,19 +17,18 @@ jobs:
           curl -fL --retry 6 --retry-all-errors --retry-delay 8 --retry-max-time 240 https://github.com/skylot/jadx/releases/download/v1.5.1/jadx-1.5.1.zip -o /tmp/jadx.zip
           unzip -q /tmp/jadx.zip -d /tmp/jadx
           chmod +x /tmp/jadx/bin/jadx
-      - name: Decompile MStar input components
+      - name: Decompile and inspect launch path
         run: |
-          /tmp/jadx/bin/jadx --no-res -d /tmp/hotkey folder./tvsettinghotkey.apk
-          /tmp/jadx/bin/jadx --no-res -d /tmp/provider folder./MstTvProvider.apk
-          echo '===== COMMONSKIN SERVICE BINDING AND SWITCH ====='
-          sed -n '1,155p' /tmp/hotkey/sources/com/mstar/tv/service/skin/CommonSkin.java
-          echo '===== INPUT SOURCE ENUM ====='
+          /tmp/jadx/bin/jadx -d /tmp/hotkey folder./tvsettinghotkey.apk
+          echo '===== COMMONSKIN METHODS ====='
+          sed -n '85,145p' /tmp/hotkey/sources/com/mstar/tv/service/skin/CommonSkin.java
+          echo '===== INPUT ACTIVITY SOURCE SELECTION ====='
+          sed -n '180,270p' /tmp/hotkey/sources/com/mstar/tvsetting/hotkey/InputSourceListViewActivity.java
+          sed -n '420,590p' /tmp/hotkey/sources/com/mstar/tvsetting/hotkey/InputSourceListViewActivity.java
+          echo '===== INPUT ACTIVITY LIFECYCLE AND INTENTS ====='
+          grep -nE 'onCreate|onResume|onStart|onNewIntent|getIntent|get.*Extra|putExtra|switchSource|inputSource =' /tmp/hotkey/sources/com/mstar/tvsetting/hotkey/InputSourceListViewActivity.java | head -n 160
+          echo '===== ENUM AND AIDL ====='
           cat /tmp/hotkey/sources/com/mstar/tv/service/aidl/EN_INPUT_SOURCE_TYPE.java
-          echo '===== COMMON AIDL SWITCH METHOD ====='
-          grep -n -A22 -B8 'SetInputSource' /tmp/hotkey/sources/com/mstar/tv/service/interfaces/ITvServiceServerCommon.java | head -n 100
-          echo '===== HOTKEY APP CALL SITES (EXCLUDING GENERATED INTERFACES) ====='
-          grep -RinE 'SetInputSource|InputSourceListViewActivity|E_INPUT_SOURCE_HDMI' /tmp/hotkey/sources --exclude='ITvServiceServer*' --exclude='CommonSkin.java' --exclude='EN_INPUT_SOURCE_TYPE.java' | head -n 250 || true
-          echo '===== PROVIDER INPUT METHODS ====='
-          grep -RinE 'InputSource|HDMI|TvManager|set.*source|source.*set' /tmp/provider/sources | head -n 180 || true
-          echo '===== HOTKEY MANIFEST COMPONENTS ====='
-          grep -nE 'activity|service|receiver|permission' /tmp/hotkey/resources/AndroidManifest.xml | head -n 200 || true
+          grep -n -A15 -B5 'SetInputSource' /tmp/hotkey/sources/com/mstar/tv/service/interfaces/ITvServiceServerCommon.java | head -n 70
+          echo '===== MANIFEST ====='
+          sed -n '1,240p' /tmp/hotkey/resources/AndroidManifest.xml
