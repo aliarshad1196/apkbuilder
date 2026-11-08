@@ -20,9 +20,15 @@ jobs:
         run: |
           /tmp/jadx/bin/jadx --no-res -d /tmp/hotkey folder./tvsettinghotkey.apk
           /tmp/jadx/bin/jadx --no-res -d /tmp/provider folder./MstTvProvider.apk
-          echo '===== HOTKEY INPUT METHODS ====='
-          grep -RinE 'InputSourceListViewActivity|SetInputSource|setInputSource|SwitchInputSource|SetCurrentInputSource|E_INPUT_SOURCE_HDMI|EnumInputSource|GetCurrentInputSource|TvManager|ITvServiceServer|set.*source|source.*set' /tmp/hotkey/sources | head -n 400 || true
+          echo '===== COMMONSKIN SERVICE BINDING AND SWITCH ====='
+          sed -n '1,155p' /tmp/hotkey/sources/com/mstar/tv/service/skin/CommonSkin.java
+          echo '===== INPUT SOURCE ENUM ====='
+          cat /tmp/hotkey/sources/com/mstar/tv/service/aidl/EN_INPUT_SOURCE_TYPE.java
+          echo '===== COMMON AIDL SWITCH METHOD ====='
+          grep -n -A22 -B8 'SetInputSource' /tmp/hotkey/sources/com/mstar/tv/service/interfaces/ITvServiceServerCommon.java | head -n 100
+          echo '===== HOTKEY APP CALL SITES (EXCLUDING GENERATED INTERFACES) ====='
+          grep -RinE 'SetInputSource|InputSourceListViewActivity|E_INPUT_SOURCE_HDMI' /tmp/hotkey/sources --exclude='ITvServiceServer*' --exclude='CommonSkin.java' --exclude='EN_INPUT_SOURCE_TYPE.java' | head -n 250 || true
           echo '===== PROVIDER INPUT METHODS ====='
-          grep -RinE 'InputSource|HDMI|TvManager|ITvServiceServer|set.*source|source.*set' /tmp/provider/sources | head -n 250 || true
+          grep -RinE 'InputSource|HDMI|TvManager|set.*source|source.*set' /tmp/provider/sources | head -n 180 || true
           echo '===== HOTKEY MANIFEST COMPONENTS ====='
           grep -nE 'activity|service|receiver|permission' /tmp/hotkey/resources/AndroidManifest.xml | head -n 200 || true
