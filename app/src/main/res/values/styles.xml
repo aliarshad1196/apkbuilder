@@ -1,7 +1,5 @@
 <resources>
     <style name="AppTheme" parent="@android:style/Theme.Holo.NoActionBar">
         <item name="android:windowBackground">#101820</item>
-        <item name="android:colorAccent">#35B7A5</item>
-        <item name="android:fontFamily">sans</item>
     </style>
 </resources>
