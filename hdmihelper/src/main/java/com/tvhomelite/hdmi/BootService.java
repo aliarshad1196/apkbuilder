@@ -16,8 +16,8 @@ public class BootService extends Service {
             worker = new Thread(new Runnable() {
                 @Override public void run() {
                     try {
-                        // Give Android and the MStar TV services time to finish booting.
-                        Thread.sleep(35000L);
+                        // Start fullscreen TV shortly after boot.
+                        Thread.sleep(15000L);
 
                         Intent fullscreen = new Intent();
                         fullscreen.setComponent(new ComponentName(
