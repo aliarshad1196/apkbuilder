@@ -1,0 +1,27 @@
+name: Analyze MStar TV files
+on:
+  push:
+    paths:
+      - 'folder./*.apk'
+      - 'folder./*.so'
+      - '.github/workflows/analyze-tv.yml'
+  workflow_dispatch:
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install JADX
+        run: |
+          curl -L --fail https://github.com/skylot/jadx/releases/download/v1.5.1/jadx-1.5.1.zip -o /tmp/jadx.zip
+          unzip -q /tmp/jadx.zip -d /tmp/jadx
+          chmod +x /tmp/jadx/bin/jadx
+      - name: Decompile and inspect TV APIs
+        run: |
+          /tmp/jadx/bin/jadx --no-res -d /tmp/tvsrc folder./tvsettingui.apk
+          echo '===== JAVA MATCHES ====='
+          grep -RinE 'HDMI|InputSource|setInput|SOURCE|source.*type|TvManager|set.*input' /tmp/tvsrc/sources | head -n 250 || true
+          echo '===== NATIVE LIBRARY STRINGS ====='
+          strings folder./libtvmanager.so | grep -iE 'hdmi|source|input|signal|tvmanager|set.*source|switch' | head -n 250 || true
+          echo '===== APK NATIVE LIBRARY REFERENCES ====='
+          grep -RinE 'libtvmanager|tvos_tvmanager|TvManager|ITvServiceServer' /tmp/tvsrc/sources | head -n 150 || true
