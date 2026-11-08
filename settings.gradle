@@ -13,4 +13,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = 'TVHomeLite'
-include ':app'
+include ':app', ':hdmihelper'
