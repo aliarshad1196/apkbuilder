@@ -1,0 +1,54 @@
+name: Inspect TV Firmware Interfaces
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'jars/**'
+      - '.github/workflows/inspect-jars.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install JADX
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jadx unzip
+      - name: Decompile framework and MStar APKs
+        run: |
+          mkdir -p inspection
+          for f in jars/*.jar folder./*.apk; do
+            [ -f "$f" ] || continue
+            name=$(basename "$f")
+            safe=$(echo "$name" | tr '. ' '__')
+            echo "Decompiling $f"
+            jadx --no-res -d "inspection/$safe" "$f" || true
+          done
+      - name: Extract MStar Binder evidence
+        run: |
+          {
+            echo '=== Binder / input-source references ==='
+            grep -RniE 'ITvServiceServer|ITvServiceServerCommon|SetInputSource|GetCommon|tv_services|InputSource' inspection || true
+            echo '=== JAR/APK entries ==='
+            for f in jars/*.jar folder./*.apk; do
+              [ -f "$f" ] || continue
+              echo "--- $f"
+              unzip -l "$f" | head -60
+            done
+          } > inspection-report.txt
+          test -s inspection-report.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tv-firmware-inspection
+          path: |
+            inspection-report.txt
+            inspection/
+          if-no-files-found: error
+          retention-days: 7
