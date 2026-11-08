@@ -32,3 +32,13 @@ jobs:
           grep -R -nE 'new CommonSkin|\.connect\(|CommonSkin\(' /tmp/hotkey/sources/com/mstar/tvsetting/hotkey | head -n 100
           echo '===== SERVICE BINDING REFERENCES ====='
           grep -R -nE 'tv_services|ServiceManager|getService|ITvServiceServer\.Stub|asInterface|bindService' /tmp/hotkey/sources/com/mstar/tv/service | head -n 140
+
+      - name: Inspect binder transaction and permission
+        run: |
+          echo '===== COMMON AIDL TRANSACTION IDS ====='
+          grep -n -A30 -B8 'TRANSACTION_SetInputSource' /tmp/hotkey/sources/com/mstar/tv/service/interfaces/ITvServiceServerCommon.java | head -n 100
+          echo '===== PERMISSION REFERENCES ====='
+          grep -R -n 'com.mstar.permission.RW_TV_DATA' /tmp/hotkey/resources /tmp/hotkey/sources | head -n 30
+          echo '===== PROVIDER MANIFEST ====='
+          /tmp/jadx/bin/jadx -d /tmp/provider folder./MstTvProvider.apk >/dev/null 2>&1
+          sed -n '1,180p' /tmp/provider/resources/AndroidManifest.xml
