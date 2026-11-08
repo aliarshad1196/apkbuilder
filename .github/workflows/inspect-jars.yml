@@ -17,10 +17,18 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - name: Install JADX
+      - name: Download JADX release
         run: |
           sudo apt-get update
-          sudo apt-get install -y jadx unzip
+          sudo apt-get install -y unzip
+          JADX_URL=$(curl -fsSL https://api.github.com/repos/skylot/jadx/releases/latest | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(a["browser_download_url"] for a in d["assets"] if a["name"].endswith(".zip")))')
+          curl -fL "$JADX_URL" -o /tmp/jadx.zip
+          mkdir -p /tmp/jadx
+          unzip -q /tmp/jadx.zip -d /tmp/jadx
+          JADX_BIN=$(find /tmp/jadx -type f -path '*/bin/jadx' | head -1)
+          test -n "$JADX_BIN"
+          chmod +x "$JADX_BIN"
+          echo "JADX_BIN=$JADX_BIN" >> "$GITHUB_ENV"
       - name: Decompile framework and MStar APKs
         run: |
           mkdir -p inspection
@@ -29,7 +37,7 @@ jobs:
             name=$(basename "$f")
             safe=$(echo "$name" | tr '. ' '__')
             echo "Decompiling $f"
-            jadx --no-res -d "inspection/$safe" "$f" || true
+            "$JADX_BIN" --no-res -d "inspection/$safe" "$f" || true
           done
       - name: Extract MStar Binder evidence
         run: |
