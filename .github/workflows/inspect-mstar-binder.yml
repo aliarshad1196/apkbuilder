@@ -1,0 +1,25 @@
+name: Inspect MStar input Binder call
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/inspect-mstar-binder.yml'
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install JADX
+        run: |
+          mkdir -p /tmp/jadx
+          curl -fL --retry 5 https://github.com/skylot/jadx/releases/download/v1.5.1/jadx-1.5.1.zip -o /tmp/jadx.zip
+          unzip -q /tmp/jadx.zip -d /tmp/jadx
+          chmod +x /tmp/jadx/bin/jadx
+      - name: Print exact Binder transaction implementation
+        run: |
+          /tmp/jadx/bin/jadx -d /tmp/hotkey folder./tvsettinghotkey.apk
+          f=/tmp/hotkey/sources/com/mstar/tv/service/interfaces/ITvServiceServerCommon.java
+          echo '===== METHOD DECLARATIONS AND TRANSACTION CONSTANTS ====='
+          grep -n -i -E 'SetInputSource|TRANSACTION_' "$f" | head -n 100
+          echo '===== ONTRANSACT BODY ====='
+          sed -n '100,430p' "$f"
